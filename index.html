@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ถึงคนสำคัญของผม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&family=Sarabun:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #fafaf8;
+    --ink: #1c1c1c;
+    --muted: #8a8a85;
+    --line: #dcdcd6;
+    --card: #ffffff;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Sarabun', sans-serif;
+    font-weight:300;
+    color:var(--ink);
+    background:var(--bg);
+    overflow-x:hidden;
+  }
+  .stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .screen{
+    display:none;
+    width:100%;
+    max-width:480px;
+    text-align:center;
+    animation:fadeUp 1s ease both;
+  }
+  .screen.active{display:block;}
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .headline{
+    font-family:'Kanit', sans-serif;
+    font-weight:300;
+    font-size:clamp(1.5rem, 5vw, 2.2rem);
+    letter-spacing:.02em;
+    line-height:1.5;
+    margin:0 0 28px;
+  }
+  .rule{
+    width:36px; height:1px;
+    background:var(--ink);
+    margin:0 auto 28px;
+    border:0;
+  }
+  .sub{
+    font-size:1.05rem;
+    color:var(--muted);
+    margin:0 0 26px;
+  }
+
+  input[type=text]{
+    width:100%;
+    max-width:260px;
+    padding:10px 4px;
+    border:0;
+    border-bottom:1px solid var(--line);
+    background:transparent;
+    font-family:'Sarabun', sans-serif;
+    font-size:1rem;
+    text-align:center;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .2s;
+  }
+  input[type=text]:focus{ border-bottom-color:var(--ink); }
+  input::placeholder{ color:var(--muted); }
+
+  button{
+    font-family:'Kanit', sans-serif;
+    font-size:.95rem;
+    font-weight:400;
+    letter-spacing:.04em;
+    border-radius:2px;
+    padding:11px 28px;
+    cursor:pointer;
+    transition:background .2s, color .2s, transform .15s;
+  }
+  button:focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+  button:active{ transform:scale(.97); }
+
+  .btn-primary{
+    background:var(--ink);
+    color:#fff;
+    border:1px solid var(--ink);
+  }
+  .btn-primary:hover{ background:#000; }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover{ border-color:var(--ink); }
+
+  .row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:22px;
+  }
+  .action-row{ min-height:56px; }
+
+  /* ---- popup ---- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(250,250,248,0.85);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .popup{
+    background:var(--card);
+    border:1px solid var(--line);
+    padding:28px 26px;
+    max-width:300px;
+    width:100%;
+    text-align:center;
+    animation:fadeUp .3s ease both;
+  }
+  .popup p{
+    font-family:'Kanit', sans-serif;
+    font-weight:300;
+    font-size:1.05rem;
+    margin:0 0 20px;
+  }
+
+  /* ---- envelope ---- */
+  .envelope-wrap{
+    display:flex; justify-content:center; margin:56px 0 22px;
+  }
+  .envelope{
+    width:160px; height:108px;
+    position:relative;
+    cursor:pointer;
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background:var(--card);
+    border:1px solid var(--ink);
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; right:0;
+    height:0; width:0;
+    border-left:80px solid transparent;
+    border-right:80px solid transparent;
+    border-top:60px solid var(--ink);
+    transform-origin:top;
+    transition:transform .9s ease;
+  }
+  .envelope.open .env-flap{ transform:rotateX(180deg); opacity:.15; }
+  .hint-tap{
+    font-size:.85rem;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
+
+  .letter-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    padding:40px 22px;
+    margin-bottom:24px;
+    display:none;
+  }
+  .letter-card.show{ display:block; animation:fadeUp .5s ease both; }
+  .letter-card p{
+    font-family:'Kanit', sans-serif;
+    font-size:1.6rem;
+    font-weight:300;
+    letter-spacing:.06em;
+    line-height:1.5;
+    margin:0;
+  }
+  .typing{
+    white-space:pre-wrap;
+    border-right:1px solid var(--ink);
+    display:inline-block;
+    min-height:1.5em;
+  }
+  #nextRow{ display:none; }
+
+  /* ---- music button ---- */
+  .music-btn{
+    display:inline-flex; align-items:center; gap:10px;
+    margin:0;
+    padding:7px 14px;
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+    font-size:.8rem;
+  }
+  .music-btn:hover{ border-color:var(--ink); }
+  .music-btn .icon{
+    display:inline-block;
+    width:0; height:0;
+    border-style:solid;
+    border-width:6px 0 6px 10px;
+    border-color:transparent transparent transparent var(--ink);
+  }
+  .music-btn.playing .icon{
+    width:10px; height:12px;
+    border:0;
+    border-left:3px solid var(--ink);
+    border-right:3px solid var(--ink);
+  }
+  .env-music{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity .5s ease 0s;
+    z-index:2;
+  }
+  .envelope.open .env-music{
+    opacity:1; pointer-events:auto;
+    transition-delay:.7s;
+  }
+
+  /* ---- final ---- */
+  .final-title{
+    font-family:'Kanit', sans-serif;
+    font-weight:300;
+    font-size:clamp(2.2rem, 9vw, 3.4rem);
+    letter-spacing:.04em;
+    line-height:1.2;
+    margin:0 0 24px;
+  }
+  .love-date{
+    margin-top:28px;
+    font-size:.9rem;
+    letter-spacing:.2em;
+    color:var(--muted);
+  }
+  .confetti{
+    position:fixed; top:-4%;
+    width:6px; height:6px;
+    border:1px solid var(--ink);
+    border-radius:50%;
+    pointer-events:none;
+    animation:fall linear forwards;
+    z-index:5;
+  }
+  .confetti.line{ width:1px; height:14px; border:0; background:var(--ink); border-radius:0; }
+  @keyframes fall{
+    to{ transform:translateY(110vh) rotate(360deg); opacity:.2; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- Screen 0: hero -->
+  <section class="screen active" id="screen-hero">
+    <h1 class="headline">ถึงคนสำคัญของผม</h1>
+    <hr class="rule">
+    <p class="sub">คุณคือคนนั้นรึเปล่าน้า</p>
+    <form id="nameForm">
+      <input type="text" id="nameInput" placeholder="ชื่ออะไรเอ่ย" autocomplete="off" required>
+      <div class="row">
+        <button type="submit" class="btn-primary">submit</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Screen 1: tease -->
+  <section class="screen" id="screen-tease">
+    <h1 class="headline">ผมมีอะไรจะบอกด้วยแหละ</h1>
+    <hr class="rule">
+    <p class="sub">อยากรู้รึเปล่าเอ่ย</p>
+    <div class="action-row" id="teaseRow">
+      <div class="row" id="teaseButtons">
+        <button class="btn-primary" id="btnYes">อยาก</button>
+        <button class="btn-ghost" id="btnNo">ไม่อยาก</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 2: envelope -->
+  <section class="screen" id="screen-envelope">
+    <h1 class="headline">คนข้างๆส่งอะไรมาน้า</h1>
+    <div class="envelope-wrap">
+      <div class="envelope" id="envelope">
+        <div class="env-body"></div>
+        <div class="env-flap"></div>
+        <div class="env-music">
+          <button type="button" class="music-btn" id="musicBtn"><span class="icon"></span><span id="musicLabel"></span></button>
+        </div>
+      </div>
+    </div>
+    <p class="hint-tap" id="envHint">open</p>
+
+    <div class="letter-card" id="letterCard">
+      <p id="letterText"></p>
+    </div>
+    <audio id="bgm" preload="auto" loop>
+      <source src="music.mp3" type="audio/mpeg">
+      <source src="music.wav" type="audio/wav">
+    </audio>
+
+    <div class="row" id="nextRow">
+      <button class="btn-primary" id="btnNext">close</button>
+    </div>
+  </section>
+
+  <!-- Screen 3: final -->
+  <section class="screen" id="screen-final">
+    <h1 class="final-title">Happy<br>Birthday</h1>
+    <hr class="rule">
+    <p class="sub">ขอให้เป็นวันที่ดีมากๆนะคะคนเก่ง</p>
+    <p id="loveDate" class="love-date"></p>
+  </section>
+
+</div>
+
+<!-- popup overlay -->
+<div class="overlay" id="overlay">
+  <div class="popup">
+    <p id="popupText"></p>
+    <button class="btn-primary" id="popupClose">โอเค</button>
+  </div>
+</div>
+
+<script>
+  const screens = {
+    hero: document.getElementById('screen-hero'),
+    tease: document.getElementById('screen-tease'),
+    envelope: document.getElementById('screen-envelope'),
+    final: document.getElementById('screen-final'),
+  };
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  const overlay = document.getElementById('overlay');
+  const popupText = document.getElementById('popupText');
+  let onPopupClose = null;
+  function showPopup(text, cb){
+    popupText.textContent = text;
+    overlay.classList.add('show');
+    onPopupClose = cb || null;
+  }
+  document.getElementById('popupClose').addEventListener('click', () => {
+    overlay.classList.remove('show');
+    if (onPopupClose) { const cb = onPopupClose; onPopupClose = null; cb(); }
+  });
+
+  // ---- name gate ----
+  const nameForm = document.getElementById('nameForm');
+  const nameInput = document.getElementById('nameInput');
+  nameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = nameInput.value.trim().toLowerCase();
+    if (val === 'ตุ้ย') {
+      showScreen('tease');
+    } else {
+      showPopup('เอ๋ เหมือนจะไม่ใช่แฮะ', () => {
+        nameInput.value = '';
+        nameInput.focus();
+      });
+    }
+  });
+
+  // ---- tease swap game ----
+  const teaseButtons = document.getElementById('teaseButtons');
+  const btnYes = document.getElementById('btnYes');
+  const btnNo = document.getElementById('btnNo');
+  let yesCount = 0;
+  let swapped = false;
+
+  btnNo.addEventListener('click', () => {
+    showPopup('ไม่อยากรู้จริงหรอ');
+  });
+
+  btnYes.addEventListener('click', () => {
+    yesCount++;
+    if (yesCount >= 3){
+      showPopup('อ่ะๆๆ...ไม่แกล้งละ', () => showScreen('envelope'));
+      return;
+    }
+    if (swapped){
+      teaseButtons.insertBefore(btnYes, btnNo);
+    } else {
+      teaseButtons.insertBefore(btnNo, btnYes);
+    }
+    swapped = !swapped;
+  });
+
+  // ---- typing effect ----
+  function typeLetter(text, done){
+    const el = document.getElementById('letterText');
+    el.textContent = '';
+    el.classList.add('typing');
+    let i = 0;
+    const timer = setInterval(() => {
+      el.textContent += text.charAt(i);
+      i++;
+      if (i >= text.length){
+        clearInterval(timer);
+        el.style.borderRight = 'none';
+        if (done) done();
+      }
+    }, 90);
+  }
+
+  // ---- envelope ----
+  const envelope = document.getElementById('envelope');
+  const letterCard = document.getElementById('letterCard');
+  const envHint = document.getElementById('envHint');
+  const nextRow = document.getElementById('nextRow');
+  let envOpened = false;
+  envelope.addEventListener('click', () => {
+    if (envOpened) return;
+    envOpened = true;
+    envelope.classList.add('open');
+    envHint.style.display = 'none';
+    setTimeout(() => {
+      letterCard.classList.add('show');
+      typeLetter('Happy Birthday Naka iauan\nมีความสุขมากๆน้า\nอย่าลืมยิ้มเยอะด้วยล่ะ\n:)', () => {
+        nextRow.style.display = 'flex';
+      });
+    }, 550);
+  });
+
+  // ---- music ----
+  const bgm = document.getElementById('bgm');
+  const musicBtn = document.getElementById('musicBtn');
+  const musicLabel = document.getElementById('musicLabel');
+  musicBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (bgm.paused){
+      bgm.play().then(() => {
+        musicBtn.classList.add('playing');
+        musicLabel.textContent = 'stop';
+      }).catch(() => {
+        showPopup('ยังไม่พบไฟล์เพลง (music.mp3 หรือ music.wav)');
+      });
+    } else {
+      bgm.pause();
+      musicBtn.classList.remove('playing');
+      musicLabel.textContent = 'play';
+    }
+  });
+
+  // ---- final ----
+  function formatDate(){
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${now.getFullYear()}`;
+  }
+
+  document.getElementById('btnNext').addEventListener('click', () => {
+    document.getElementById('loveDate').textContent = formatDate();
+    showScreen('final');
+    launchConfetti();
+  });
+
+  function launchConfetti(){
+    for (let i = 0; i < 36; i++){
+      setTimeout(() => {
+        const c = document.createElement('div');
+        c.className = 'confetti' + (Math.random() > 0.5 ? ' line' : '');
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5000);
+      }, i * 90);
+    }
+  }
+</script>
+
+</body>
+</html>
