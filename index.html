@@ -521,39 +521,32 @@
     "กอดกันอีกสักครั้งนึง",
     "ก็พอใจ"
   ];
-  const LYRIC_START = 0;   // วินาทีที่เนื้อเพลงบรรทัดแรกเริ่มขึ้น
-  const LYRIC_END = 66;    // วินาทีที่เนื้อเพลงบรรทัดสุดท้ายจบ (1:06)
+  const LYRIC_TIMES = [0.87, 2.96, 5.03, 7.11, 9.04, 10.6, 16.46, 18.99, 20.52, 23.04, 24.56, 27.01, 29.02, 30.43, 32.48, 35.08, 36.99, 40.4, 43.06, 45.56, 48.43, 49.68, 52.1, 56.36, 59.12, 61.64];
+  const LYRIC_END = 66;   // วินาทีที่บรรทัดสุดท้ายจบ
 
   const lyricsEl = document.getElementById('lyrics');
-  const weights = LYRICS.map(l => l.length + 6);
-  const totalW = weights.reduce((a, b) => a + b, 0);
-  let acc = LYRIC_START;
-  const lyricTimes = LYRICS.map((text, i) => {
-    const start = acc;
-    acc += (LYRIC_END - LYRIC_START) * weights[i] / totalW;
-    return { start, end: acc, text };
-  });
-
   let currentIdx = -1;
+
   function updateLyrics(){
     const t = bgm.currentTime;
-    const idx = lyricTimes.findIndex(x => t >= x.start && t < x.end);
-    if (idx === -1){
+    let idx = -1;
+    for (let i = 0; i < LYRICS.length; i++){
+      if (t >= LYRIC_TIMES[i]) idx = i; else break;
+    }
+    const end = idx === -1 ? 0
+      : (idx + 1 < LYRICS.length ? LYRIC_TIMES[idx + 1] : LYRIC_END);
+
+    if (idx === -1 || t >= end){
       lyricsEl.classList.remove('show');
       currentIdx = -1;
       return;
     }
-    const line = lyricTimes[idx];
     if (idx !== currentIdx){
       currentIdx = idx;
-      setTimeout(() => {
-        if (currentIdx === idx){
-          lyricsEl.textContent = line.text;
-          lyricsEl.classList.add('show');
-        }
-      }, 50);
+      lyricsEl.textContent = LYRICS[idx];
+      lyricsEl.classList.add('show');
     }
-    if (t > line.end - 0.6) lyricsEl.classList.remove('show');
+    if (t > end - 0.5) lyricsEl.classList.remove('show');
   }
   bgm.addEventListener('timeupdate', updateLyrics);
   bgm.addEventListener('pause', () => {
