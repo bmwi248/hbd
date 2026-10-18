@@ -225,11 +225,33 @@
     border-right:3px solid var(--ink);
   }
   .music-row{
-    text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
     opacity:0; pointer-events:none;
     transition:opacity .6s ease;
   }
   .music-row.show{ opacity:1; pointer-events:auto; }
+  .vol{
+    -webkit-appearance:none; appearance:none;
+    width:96px; height:20px;
+    margin:0;
+    background:transparent;
+    cursor:pointer;
+  }
+  .vol::-webkit-slider-runnable-track{ height:1px; background:var(--ink); }
+  .vol::-moz-range-track{ height:1px; background:var(--ink); }
+  .vol::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:12px; height:12px; border-radius:50%;
+    background:var(--ink); border:0;
+    margin-top:-5.5px;
+  }
+  .vol::-moz-range-thumb{
+    width:12px; height:12px; border-radius:50%;
+    background:var(--ink); border:0;
+  }
 
   /* ---- final ---- */
    .final-photo{
@@ -351,6 +373,7 @@
 
     <div class="music-row" id="musicRow">
       <button type="button" class="music-btn" id="musicBtn"><span class="icon"></span><span id="musicLabel"></span></button>
+      <input type="range" id="vol" class="vol" min="0" max="100" value="100" aria-label="volume">
     </div>
 
     <div class="letter-card" id="letterCard">
@@ -382,7 +405,7 @@
 <div class="overlay" id="overlay">
   <div class="popup">
     <p id="popupText"></p>
-    <button class="btn-primary" id="popupClose">โอเค</button>
+    <button class="btn-primary" id="popupClose">></button>
   </div>
 </div>
 
@@ -497,6 +520,8 @@
   musicBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (bgm.paused){
+      setupGain();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       bgm.play().then(() => {
         musicBtn.classList.add('playing');
         musicLabel.textContent = 'stop';
@@ -535,7 +560,7 @@
     "ช่วยบอกชัดๆ",
     "ว่าเธอนั้นรักกันไหม",
     "แม่บอกให้เราสองคนนั้นรักกันไว้",
-    "ช่วยบอกว่ารักกันอีกสักครั้งนึง",
+    "ช่วยบอกว่ารักให้ฟังสักคำนึง",
     "กอดกันอีกสักครั้งนึง",
     "ก็พอใจ"
   ];
@@ -578,6 +603,36 @@
   bgm.addEventListener('pause', () => {
     hideLyric();
     currentIdx = -1;
+  });
+
+  // ---- volume ----
+  // iPhone ไม่ยอมให้ใช้ audio.volume จึงส่งเสียงผ่าน Web Audio (GainNode) แทน
+  const volEl = document.getElementById('vol');
+  let audioCtx = null;
+  let gainNode = null;
+
+  function setupGain(){
+    if (audioCtx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      audioCtx = new AC();
+      const source = audioCtx.createMediaElementSource(bgm);
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = volEl.value / 100;
+      source.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      bgm.volume = 1;
+    } catch (err) {
+      audioCtx = null;
+      gainNode = null;
+    }
+  }
+
+  volEl.addEventListener('input', () => {
+    const v = volEl.value / 100;
+    if (gainNode) gainNode.gain.value = v;
+    else bgm.volume = v;
   });
 
   // ---- final ----
