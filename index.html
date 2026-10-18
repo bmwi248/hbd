@@ -268,6 +268,24 @@
     to{ transform:translateY(110vh) rotate(360deg); opacity:.2; }
   }
 
+  .lyrics{
+    position:fixed;
+    left:0; right:0;
+    bottom:max(8vh, env(safe-area-inset-bottom));
+    text-align:center;
+    padding:0 24px;
+    font-family:'Kanit', sans-serif;
+    font-weight:300;
+    font-size:clamp(1rem, 3.8vw, 1.25rem);
+    letter-spacing:.03em;
+    color:var(--ink);
+    opacity:0;
+    transition:opacity .6s ease;
+    pointer-events:none;
+    z-index:20;
+  }
+  .lyrics.show{ opacity:1; }
+
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
   }
@@ -340,6 +358,8 @@
 </section>
 
 </div>
+
+<div class="lyrics" id="lyrics"></div>
 
 <!-- popup overlay -->
 <div class="overlay" id="overlay">
@@ -470,6 +490,75 @@
       musicBtn.classList.remove('playing');
       musicLabel.textContent = 'play';
     }
+  });
+
+  // ---- lyrics ----
+  const LYRICS = [
+    "ฉันแต่งออกมาเป็นเพลงนี้",
+    "หวังให้เธอได้รับฟัง",
+    "เก็บมันเอาไว้เป็นเครื่องหมาย",
+    "ว่าเรายังคงรักกัน",
+    "วันใดที่รู้สึกท้อ",
+    "จำเอาไว้เธออยู่ข้างๆฉันก็พอ",
+    "จะบอกว่ารักเธอในทุกๆวัน",
+    "ก่อนจะนอน",
+    "มีอกของฉันให้เธอได้ซบลง",
+    "ตอนที่ร้อง",
+    "เธอฟังที่พูดอยู่ไหมที่รัก",
+    "รักแค่เธอนะครับ",
+    "ไม่ต้องไปแข่งกับใคร",
+    "เพราะเธอคือ only one",
+    "Cause baby you're my little moon",
+    "I'm your little star",
+    "พาเธอไปในโลกที่มีแค่เธอและฉัน",
+    "จะเป็นร้อยยิ้มให้เธอทุกวันเลย",
+    "girl we can be better",
+    "ที่รัก",
+    "ช่วยบอกชัดๆ",
+    "ว่าเธอนั้นรักกันไหม",
+    "แม่บอกให้เราสองคนนั้นรักกันไว้",
+    "ช่วยบอกว่ารักให้ฟังสักคำนึง",
+    "กอดกันอีกสักครั้งนึง",
+    "ก็พอใจ"
+  ];
+  const LYRIC_START = 0;   // วินาทีที่เนื้อเพลงบรรทัดแรกเริ่มขึ้น
+  const LYRIC_END = 66;    // วินาทีที่เนื้อเพลงบรรทัดสุดท้ายจบ (1:06)
+
+  const lyricsEl = document.getElementById('lyrics');
+  const weights = LYRICS.map(l => l.length + 6);
+  const totalW = weights.reduce((a, b) => a + b, 0);
+  let acc = LYRIC_START;
+  const lyricTimes = LYRICS.map((text, i) => {
+    const start = acc;
+    acc += (LYRIC_END - LYRIC_START) * weights[i] / totalW;
+    return { start, end: acc, text };
+  });
+
+  let currentIdx = -1;
+  function updateLyrics(){
+    const t = bgm.currentTime;
+    const idx = lyricTimes.findIndex(x => t >= x.start && t < x.end);
+    if (idx === -1){
+      lyricsEl.classList.remove('show');
+      currentIdx = -1;
+      return;
+    }
+    const line = lyricTimes[idx];
+    if (idx !== currentIdx){
+      currentIdx = idx;
+      setTimeout(() => {
+        if (currentIdx === idx){
+          lyricsEl.textContent = line.text;
+          lyricsEl.classList.add('show');
+        }
+      }, 50);
+    }
+    if (t > line.end - 0.6) lyricsEl.classList.remove('show');
+  }
+  bgm.addEventListener('timeupdate', updateLyrics);
+  bgm.addEventListener('pause', () => {
+    lyricsEl.classList.remove('show');
+    currentIdx = -1;
   });
 
   // ---- final ----
