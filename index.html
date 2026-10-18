@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ถึงคนสำคัญของผม</title>
+<title>my secret crush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&family=Sarabun:wght@300;400&display=swap" rel="stylesheet">
@@ -279,11 +279,11 @@
 
   <!-- Screen 0: hero -->
   <section class="screen active" id="screen-hero">
-    <h1 class="headline">ถึงคนสำคัญของผม</h1>
+    <h1 class="headline">To someone special</h1>
     <hr class="rule">
-    <p class="sub">คุณคือคนนั้นรึเปล่าน้า</p>
+    <p class="sub">Are you the one?</p>
     <form id="nameForm">
-      <input type="text" id="nameInput" placeholder="ชื่ออะไรเอ่ย" autocomplete="off" required>
+      <input type="text" id="nameInput" placeholder="your name" autocomplete="off" required>
       <div class="row">
         <button type="submit" class="btn-primary">submit</button>
       </div>
@@ -292,20 +292,20 @@
 
   <!-- Screen 1: tease -->
   <section class="screen" id="screen-tease">
-    <h1 class="headline">ผมมีอะไรจะบอกด้วยแหละ</h1>
+    <h1 class="headline">I have something to tell you</h1>
     <hr class="rule">
-    <p class="sub">อยากรู้รึเปล่าเอ่ย</p>
+    <p class="sub">Do you want to know?</p>
     <div class="action-row" id="teaseRow">
       <div class="row" id="teaseButtons">
-        <button class="btn-primary" id="btnYes">อยาก</button>
-        <button class="btn-ghost" id="btnNo">ไม่อยาก</button>
+        <button class="btn-primary" id="btnYes">Yes</button>
+        <button class="btn-ghost" id="btnNo">No</button>
       </div>
     </div>
   </section>
 
   <!-- Screen 2: envelope -->
   <section class="screen" id="screen-envelope">
-    <h1 class="headline">คนข้างๆส่งอะไรมาน้า</h1>
+    <h1 class="headline">Look what someone sent you</h1>
     <div class="envelope-wrap">
       <div class="envelope" id="envelope">
         <div class="env-body"></div>
@@ -335,7 +335,7 @@
   <img src="photo.png" alt="" class="final-photo">
   <h1 class="final-title">Happy<br>Birthday</h1>
   <hr class="rule">
-  <p class="sub">ขอให้เป็นวันที่ดีมากๆ นะ</p>
+  <p class="sub">Have a good day naka</p>
   <p id="loveDate" class="love-date"></p>
 </section>
 
@@ -384,7 +384,7 @@
     if (val === 'ตุ้ย') {
       showScreen('tease');
     } else {
-      showPopup('เอ๋ เหมือนจะไม่ใช่แฮะ', () => {
+      showPopup('Wait... who are you?', () => {
         nameInput.value = '';
         nameInput.focus();
       });
@@ -399,13 +399,13 @@
   let swapped = false;
 
   btnNo.addEventListener('click', () => {
-    showPopup('ไม่อยากรู้จริงหรอ');
+    showPopup('seriously? Think again');
   });
 
   btnYes.addEventListener('click', () => {
     yesCount++;
     if (yesCount >= 3){
-      showPopup('อ่ะๆๆ...ไม่แกล้งละ', () => showScreen('envelope'));
+      showPopup('Hahaha', () => showScreen('envelope'));
       return;
     }
     if (swapped){
