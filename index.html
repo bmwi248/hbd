@@ -143,13 +143,18 @@
 
   /* ---- envelope ---- */
   .envelope-wrap{
-    display:flex; justify-content:center; margin:56px 0 22px;
+    position:relative;
+    display:flex; justify-content:center;
+    height:108px;
+    margin:56px 0 22px;
   }
   .envelope{
     width:160px; height:108px;
     position:relative;
     cursor:pointer;
+    transition:opacity .6s ease;
   }
+  .envelope.gone{ opacity:0; pointer-events:none; }
   .env-body{
     position:absolute; inset:0;
     background:var(--card);
@@ -174,17 +179,17 @@
   .letter-card{
     background:var(--card);
     border:1px solid var(--line);
-    padding:40px 22px;
-    margin-bottom:24px;
+    padding:36px 22px;
+    margin:20px 0 24px;
     display:none;
   }
   .letter-card.show{ display:block; animation:fadeUp .5s ease both; }
   .letter-card p{
     font-family:'Kanit', sans-serif;
-    font-size:1.6rem;
+    font-size:1.4rem;
     font-weight:300;
-    letter-spacing:.06em;
-    line-height:1.5;
+    letter-spacing:.05em;
+    line-height:1.7;
     margin:0;
   }
   .typing{
@@ -219,17 +224,12 @@
     border-left:3px solid var(--ink);
     border-right:3px solid var(--ink);
   }
-  .env-music{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
+  .music-row{
+    text-align:center;
     opacity:0; pointer-events:none;
-    transition:opacity .5s ease 0s;
-    z-index:2;
+    transition:opacity .6s ease;
   }
-  .envelope.open .env-music{
-    opacity:1; pointer-events:auto;
-    transition-delay:.7s;
-  }
+  .music-row.show{ opacity:1; pointer-events:auto; }
 
   /* ---- final ---- */
    .final-photo{
@@ -268,23 +268,39 @@
     to{ transform:translateY(110vh) rotate(360deg); opacity:.2; }
   }
 
-  .lyrics{
-    position:fixed;
-    left:0; right:0;
-    bottom:max(8vh, env(safe-area-inset-bottom));
-    text-align:center;
-    padding:0 24px;
+  .lyrics-box{
+    position:absolute; inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
     font-family:'Kanit', sans-serif;
     font-weight:300;
-    font-size:clamp(1rem, 3.8vw, 1.25rem);
+    font-size:clamp(1.15rem, 4.5vw, 1.5rem);
     letter-spacing:.03em;
-    color:var(--ink);
+    line-height:1.6;
     opacity:0;
     transition:opacity .6s ease;
     pointer-events:none;
-    z-index:20;
   }
-  .lyrics.show{ opacity:1; }
+  .lyrics-box.show{ opacity:1; }
+  .lyrics-final{
+    min-height:72px;
+    margin-top:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
+    font-family:'Kanit', sans-serif;
+    font-weight:300;
+    font-size:clamp(1.05rem, 4vw, 1.25rem);
+    letter-spacing:.03em;
+    line-height:1.6;
+    opacity:0;
+    transition:opacity .6s ease;
+    pointer-events:none;
+  }
+  .lyrics-final.show{ opacity:1; }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
@@ -328,12 +344,14 @@
       <div class="envelope" id="envelope">
         <div class="env-body"></div>
         <div class="env-flap"></div>
-        <div class="env-music">
-          <button type="button" class="music-btn" id="musicBtn"><span class="icon"></span><span id="musicLabel"></span></button>
-        </div>
       </div>
+      <div class="lyrics-box" id="lyrics"></div>
     </div>
     <p class="hint-tap" id="envHint">open</p>
+
+    <div class="music-row" id="musicRow">
+      <button type="button" class="music-btn" id="musicBtn"><span class="icon"></span><span id="musicLabel"></span></button>
+    </div>
 
     <div class="letter-card" id="letterCard">
       <p id="letterText"></p>
@@ -355,11 +373,10 @@
   <hr class="rule">
   <p class="sub">Have a good day naka</p>
   <p id="loveDate" class="love-date"></p>
+  <div class="lyrics-final" id="lyricsFinal"></div>
 </section>
 
 </div>
-
-<div class="lyrics" id="lyrics"></div>
 
 <!-- popup overlay -->
 <div class="overlay" id="overlay">
@@ -455,7 +472,6 @@
 
   // ---- envelope ----
   const envelope = document.getElementById('envelope');
-  const letterCard = document.getElementById('letterCard');
   const envHint = document.getElementById('envHint');
   const nextRow = document.getElementById('nextRow');
   let envOpened = false;
@@ -463,13 +479,15 @@
     if (envOpened) return;
     envOpened = true;
     envelope.classList.add('open');
-    envHint.style.display = 'none';
+    envHint.style.visibility = 'hidden';
+    setTimeout(() => envelope.classList.add('gone'), 1000);
     setTimeout(() => {
-      letterCard.classList.add('show');
+      document.getElementById('musicRow').classList.add('show');
+      document.getElementById('letterCard').classList.add('show');
       typeLetter('Happy Birthday Naka iauan\nมีความสุขมากๆน้า\nอย่าลืมยิ้มเยอะด้วยล่ะ\n:)', () => {
         nextRow.style.display = 'flex';
       });
-    }, 550);
+    }, 1400);
   });
 
   // ---- music ----
@@ -517,14 +535,23 @@
     "ช่วยบอกชัดๆ",
     "ว่าเธอนั้นรักกันไหม",
     "แม่บอกให้เราสองคนนั้นรักกันไว้",
-    "ช่วยบอกว่ารักให้ฟังสักคำนึง",
+    "ช่วยบอกว่ารักกันอีกสักครั้งนึง",
     "กอดกันอีกสักครั้งนึง",
     "ก็พอใจ"
   ];
   const LYRIC_TIMES = [0.87, 2.96, 5.03, 7.11, 9.04, 10.6, 16.46, 18.99, 20.52, 23.04, 24.56, 27.01, 29.02, 30.43, 32.48, 35.08, 36.99, 40.4, 43.06, 45.56, 48.43, 49.68, 52.1, 56.36, 59.12, 61.64];
   const LYRIC_END = 66;   // วินาทีที่บรรทัดสุดท้ายจบ
 
-  const lyricsEl = document.getElementById('lyrics');
+  const lyricsEls = [
+    document.getElementById('lyrics'),
+    document.getElementById('lyricsFinal')
+  ];
+  function showLyric(text){
+    lyricsEls.forEach(el => { el.textContent = text; el.classList.add('show'); });
+  }
+  function hideLyric(){
+    lyricsEls.forEach(el => el.classList.remove('show'));
+  }
   let currentIdx = -1;
 
   function updateLyrics(){
@@ -537,20 +564,19 @@
       : (idx + 1 < LYRICS.length ? LYRIC_TIMES[idx + 1] : LYRIC_END);
 
     if (idx === -1 || t >= end){
-      lyricsEl.classList.remove('show');
+      hideLyric();
       currentIdx = -1;
       return;
     }
     if (idx !== currentIdx){
       currentIdx = idx;
-      lyricsEl.textContent = LYRICS[idx];
-      lyricsEl.classList.add('show');
+      showLyric(LYRICS[idx]);
     }
-    if (t > end - 0.5) lyricsEl.classList.remove('show');
+    if (t > end - 0.5) hideLyric();
   }
   bgm.addEventListener('timeupdate', updateLyrics);
   bgm.addEventListener('pause', () => {
-    lyricsEl.classList.remove('show');
+    hideLyric();
     currentIdx = -1;
   });
 
